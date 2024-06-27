@@ -38,7 +38,9 @@ export function Home() {
     let key: keyof ProfileValidationErrors;
     for (key in changedProfile) {
       if (Object.hasOwn(changedProfile, key)) {
-        result[key] = validator[key]?.(changedProfile[key]);
+        const message = validator[key]?.(changedProfile[key]);
+        if (message) result[key] = message;
+        else delete result[key];
       }
     }
     return result;
@@ -49,13 +51,16 @@ export function Home() {
   }, []);
 
   const handleFlipedClick = useCallback(async () => {
+    if (Object.keys(errors).length) {
+      return;
+    }
     if (Object.keys(changedProfile).length) {
       await setProfile(changedProfile);
       getProfileState.retry();
       setChangedProfile({});
     }
     setEditMode(false);
-  }, [changedProfile, getProfileState]);
+  }, [changedProfile, errors, getProfileState]);
 
   return (
     <div className="bg-gradient-to-tr from-orange-400 via-red-300 to-blue-500 min-h-screen flex items-center justify-center p-12 md:p-20">
